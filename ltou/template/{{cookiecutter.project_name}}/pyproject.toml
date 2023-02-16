@@ -1,0 +1,169 @@
+[tool.poetry]
+name = "{{cookiecutter.project_name}}"
+version = "0.1.0"
+description = ""
+authors = []
+maintainers = []
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+fastapi = "^0.92.0"
+uvicorn = { version = "^0.18.3", extras = ["standard"] }
+pydantic = {extras = ["dotenv"], version = "^1.10.4"}
+yarl = "^1.8.1"
+ujson = "^5.5.0"
+pyzt = "*"
+jose = "^1.0.0"
+passlib = "^1.7.4"
+httpx = "^0.23.3"
+anyio = "^3.6.1"
+pytest = "^7.1.3"
+pytest-env = "^0.6.2"
+structlog = "^22.3.0"
+greenlet = "2.0.2"
+pytest-trio  = "^0.8.0"
+{%- if cookiecutter.db_info.name == "postgresql" %}
+alembic = "^1.8.1"
+psycopg2-binary = "^2.9.5"
+asyncpg = "^0.27.0"
+{%- endif %}
+
+{%- if cookiecutter.orm == "sqlalchemy" %}
+SQLAlchemy = {version = "^1.4.41", extras = ["mypy", "asyncio", "greenlet"]}
+alembic = "^1.8.1"
+{%- endif %}
+{%- if cookiecutter.db_info.name == "sqlite" %}
+aiosqlite = "^0.17.0"
+{%- endif %}
+
+{%- if cookiecutter.db_info.name == "mysql" %}
+aiomysql = "^0.1.1"
+mysqlclient = "^2.1.1"
+{%- endif %}
+
+
+{%- if cookiecutter.orm == "tortoise" %}
+tortoise-orm = "^0.19.2"
+
+{%- endif %}
+
+{%- if cookiecutter.db_info.name == "postgresql" %}
+
+{%- endif %}
+{%- if cookiecutter.db_info.name == "sqlite" %}
+aiosqlite = "^0.17.0"
+{%- endif %}
+{%- if cookiecutter.db_info.name == "mysql" %}
+aiomysql = "^0.1.1"
+mysqlclient = "^2.1.1"
+cryptography = "^38.0.1"
+{%- endif %}
+
+
+{%- if cookiecutter.enable_redis == "True" %}
+redis = {version = "^4.3.4", extras = ["hiredis"]}
+{%- endif %}
+
+
+
+{%- if cookiecutter.orm == "sqlmodel" %}
+psycopg = { version = "^3.1.2", extras = ["binary", "pool"] }
+{%- endif %}
+
+{%- if cookiecutter.orm == "beanie" %}
+beanie = "^1.17.0"
+{%- endif %}
+
+{%- if cookiecutter.orm == "mongo" %}
+motor = "^3.1.1"
+{%- endif %}
+
+
+{%- if cookiecutter.enable_rmq == "True" %}
+aio-pika = "^8.2.3"
+{%- endif %}
+
+{%- if cookiecutter.enable_celery == "True" %}
+celery = "^5.2.7"
+{%- endif %}
+{%- if cookiecutter.enable_sentry == "True" %}
+sentry-sdk = "^1.9.9"
+{%- endif %}
+
+
+{%- if cookiecutter.enable_loguru == "True" %}
+loguru = "^0.6.0"
+{%- endif %}
+
+{%- if cookiecutter.enable_kafka == "True" %}
+aiokafka = "^0.7.2"
+{%- endif %}
+
+[tool.poetry.dev-dependencies]
+pytest = "^7.1.3"
+pytest-asyncio= "^0.20.3"
+flake8 = "~4.0.1"
+mypy = "^0.981"
+isort = "^5.10.1"
+pre-commit = "^2.20.0"
+wemake-python-styleguide = "^0.17.0"
+black = "^22.8.0"
+autoflake = "^1.6.1"
+
+
+{%- if cookiecutter.enable_redis == "True" %}
+aioredis = "^2.0.1"
+{%- endif %}
+{%- if cookiecutter.orm == "tortoise" %}
+asynctest = "^0.13.0"
+nest-asyncio = "^1.5.6"
+{%- endif %}
+
+{%- if cookiecutter.orm == "mongo" %}
+motor = "^3.1.1"
+{%- endif %}
+
+{%- if cookiecutter.orm == "beanie" %}
+motor = "^3.1.1"
+{%- endif %}
+{%- if cookiecutter.orm == "sqlalchemy" %}
+SQLAlchemy = {version = "^1.4.41", extras = ["mypy"]}
+{%- endif %}
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+src_paths = ["{{cookiecutter.project_name}}",]
+
+[tool.mypy]
+strict = true
+ignore_missing_imports = true
+allow_subclassing_any = true
+allow_untyped_calls = true
+pretty = true
+show_error_codes = true
+implicit_reexport = true
+allow_untyped_decorators = true
+warn_unused_ignores = false
+warn_return_any = false
+namespace_packages = true
+{%- if cookiecutter.orm == "sqlalchemy" %}
+plugins = ["sqlalchemy.ext.mypy.plugin"]
+{%- endif %}
+
+{%- if cookiecutter.enable_redis == "True" %}
+
+# Remove this and add `types-redis`
+# when the issue https://github.com/python/typeshed/issues/8242 is resolved.
+[[tool.mypy.overrides]]
+module = [
+    'redis.asyncio'
+]
+ignore_missing_imports = true
+
+{%- endif %}
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

@@ -1,0 +1,271 @@
+version: '3.9'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: ./deploy/Dockerfile
+    image: {{cookiecutter.project_name}}-web
+    container_name: {{cookiecutter.project_name}}-web
+    restart: always
+    networks:
+      - backend
+    env_file:
+      - .env
+    {%- if ((cookiecutter.db_info.name != "none" and cookiecutter.db_info.name != "sqlite") or
+            (cookiecutter.enable_redis == "True") or
+            (cookiecutter.enable_rmq == "True") or
+            (cookiecutter.enable_kafka == "True")) %}
+    depends_on:
+      {%- if cookiecutter.db_info.name != "none" %}
+      {%- if cookiecutter.db_info.name != "sqlite" %}
+      db:
+        condition: service_healthy
+      {%- endif %}
+      {%- endif %}
+      {%- if cookiecutter.enable_redis == "True" %}
+      redis:
+        condition: service_healthy
+      {%- endif %}
+      {%- if cookiecutter.enable_rmq == "True" %}
+      rmq:
+        condition: service_healthy
+      {%- endif %}
+      {%- if cookiecutter.enable_kafka == "True" %}
+      kafka:
+        condition: service_healthy
+      {%- endif %}
+    {%- endif %}
+
+    environment:
+      {{cookiecutter.project_name | upper }}_HOST: 0.0.0.0
+      {%- if cookiecutter.db_info.name != "none" %}
+      {%- if cookiecutter.db_info.name == "sqlite" %}
+      {{cookiecutter.project_name | upper }}_DB_FILE: /db_data/db.sqlite3
+      {%- else %}
+      {{cookiecutter.project_name | upper}}_DB_HOST: {{cookiecutter.project_name}}-db
+      {{cookiecutter.project_name | upper}}_DB_PORT: {{cookiecutter.db_info.port}}
+      {{cookiecutter.project_name | upper}}_DB_USER: {{cookiecutter.project_name}}
+      {{cookiecutter.project_name | upper}}_DB_PASS: {{cookiecutter.project_name}}
+      {{cookiecutter.project_name | upper}}_DB_BASE: {{cookiecutter.project_name}}
+      {%- endif %}
+      {%- endif %}
+      {%- if cookiecutter.enable_rmq == 'True' %}
+      {{cookiecutter.project_name | upper }}_RABBIT_HOST: {{cookiecutter.project_name}}-rmq
+      {%- endif %}
+      {%- if cookiecutter.enable_kafka == "True" %}
+      TESTKAFKA_KAFKA_BOOTSTRAP_SERVERS: '["{{cookiecutter.project_name}}-kafka:9092"]'
+      {%- endif %}
+    {%- if cookiecutter.db_info.name == "sqlite" %}
+    volumes:
+      - {{cookiecutter.project_name}}-db-data:/db_data/
+    {%- endif %}
+
+
+  {%- if cookiecutter.db_info.name == "postgresql" %}
+  db:
+    image: {{cookiecutter.db_info.image}}
+    hostname: {{cookiecutter.project_name}}-postgresql
+    environment:
+      POSTGRES_PASSWORD: "{{cookiecutter.project_name}}"
+      POSTGRES_USER: "{{cookiecutter.project_name}}"
+      POSTGRES_DB: "{{cookiecutter.project_name}}"
+     ports:
+          - '5438:5432'
+    volumes:
+      - {{cookiecutter.project_name}}-postgres-data:/var/lib/postgresql/data
+    restart:  unless-stopped
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+  {%- endif %}
+
+   {%- if cookiecutter.db_info.name == "mongodb" %}
+  db:
+    image: mongo
+    hostname: {{cookiecutter.project_name}}-mongodb
+    environment:
+       MONGO_INITDB_DATABASE: "dev-mongo"
+       MONGO_INITDB_ROOT_USERNAME: "root"
+       MONGO_INITDB_ROOT_PASSWORD: "rootpassword"
+
+     ports:
+        - 27017:27017
+    networks:
+      - backend
+    volumes:
+      - {{cookiecutter.project_name}}-mongodb-data:/data/db
+    restart: always
+  {%- endif %}
+
+  {%- if cookiecutter.db_info.name == "mysql" %}
+  db:
+    image: {{cookiecutter.db_info.image}}
+    hostname: {{cookiecutter.project_name}}-mysql
+    restart: always
+    ports:
+      - '3306:3306'
+    networks:
+      - backend
+    environment:
+      MYSQL_ROOT_USER: "{{cookiecutter.project_name}}"
+      MYSQL_ROOT_PASSWORD: "{{cookiecutter.project_name}}"
+      MYSQL_DATABASE: "{{cookiecutter.project_name}}"
+      MYSQL_AUTHENTICATION_PLUGIN: "mysql_native_password"
+    healthcheck:
+      test: mysqladmin ping -h localhost
+      interval: 10s
+      timeout: 5s
+      retries: 40
+    volumes:
+      - {{cookiecutter.project_name}}-mysql-data:/var/lib/mysql
+  {%- endif %}
+
+  {%- if cookiecutter.enable_redis == "True" %}
+
+  redis:
+    image: bitnami/redis:latest
+    hostname: "{{cookiecutter.project_name}}-redis"
+    restart: always
+    networks:
+      - backend
+    environment:
+      ALLOW_EMPTY_PASSWORD: "yes"
+    healthcheck:
+      test: redis-cli ping
+      interval: 1s
+      timeout: 3s
+      retries: 50
+  {%- endif %}
+
+  {%- if cookiecutter.enable_rmq == "True" %}
+
+  rmq:
+    image: rabbitmq:alpine
+    hostname: "{{cookiecutter.project_name}}-rmq"
+    restart: always
+    networks:
+      - backend
+    environment:
+      RABBITMQ_DEFAULT_USER: "guest"
+      RABBITMQ_DEFAULT_PASS: "guest"
+      RABBITMQ_DEFAULT_VHOST: "/"
+    healthcheck:
+      test: rabbitmq-diagnostics check_running -q
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  {%- endif %}
+
+  {%- if cookiecutter.enable_kafka == "True" %}
+
+  zookeeper:
+    image: "bitnami/zookeeper:3.8.1"
+    hostname: "{{cookiecutter.project_name}}-zookeeper"
+    environment:
+      ALLOW_ANONYMOUS_LOGIN: "yes"
+      ZOO_LOG_LEVEL: "ERROR"
+    networks:
+      - backend
+    healthcheck:
+      test: zkServer.sh status
+      interval: 1s
+      timeout: 3s
+      retries: 30
+
+  kafka:
+    image: "bitnami/kafka:3.2.3"
+    hostname: "{{cookiecutter.project_name}}-kafka"
+    networks:
+      - backend
+    environment:
+      KAFKA_BROKER_ID: "1"
+      ALLOW_PLAINTEXT_LISTENER: "yes"
+      KAFKA_CFG_LISTENERS: "PLAINTEXT://0.0.0.0:9092"
+      KAFKA_CFG_ADVERTISED_LISTENERS: "PLAINTEXT://{{cookiecutter.project_name}}-kafka:9092"
+      KAFKA_CFG_ZOOKEEPER_CONNECT: "{{cookiecutter.project_name}}-zookeeper:2181"
+    healthcheck:
+      test: kafka-topics.sh --list --bootstrap-server localhost:9092
+      interval: 3s
+      timeout: 3s
+      retries: 3
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+  {%- endif %}
+  {%- if cookiecutter.enable_celery == "True" %}
+  celery_worker:
+    build:
+       context: .
+       dockerfile: ./deploy/Dockerfile
+    container_name: celery-worker
+     image: celery_example_celery_worker
+    networks:
+      - backend
+    command: celery -A celery_worker.celery worker --loglevel=info
+     volumes:
+      - .:/app
+    environment:
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+    depends_on:
+      - db
+      - redis
+
+  celery_beat:
+    build:
+      context: .
+      dockerfile: ./deploy/Dockerfile
+    image: fastapi_celery_beat
+    networks:
+      - backend
+    command: celery -A celery_worker.celery flower --port=5555
+    ports:
+      - 5556:5555
+    volumes:
+      - .:/app
+    env_file:
+      - .env/.dev-sample
+    depends_on:
+      - db
+      - rabbitmq
+
+   flower:
+    container_name: flower
+    build:
+      context: .
+      dockerfile: ./deploy/Dockerfile
+    image: celery_example_celery_flower
+    command: celery -A celery_worker.celery flower --port=5555
+    ports:
+      - 5556:5555
+    environment:
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+    depends_on:
+      - db
+      - celery_worker
+      - rabbitmq
+  {%- endif %}
+
+volumes:
+   {%- if cookiecutter.db_info.name == "mysql" %}
+  {{cookiecutter.project_name}}-mysql-data:
+    name: {{cookiecutter.project_name}}-mysql-data
+    {%- endif %}
+
+   {%- if cookiecutter.db_info.name == "mongodb" %}
+  {{cookiecutter.project_name}}-mongodb-data:
+    name: {{cookiecutter.project_name}}-mongodb-data
+    {%- endif %}
+  {%- if cookiecutter.db_info.name == "postgresql" %}
+   {{cookiecutter.project_name}}-postgres-data:
+    name: {{cookiecutter.project_name}}-postgres-data
+    {%- endif %}
+
+networks:
+  backend:

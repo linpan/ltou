@@ -1,0 +1,1 @@
+# DocumentType = TypeVar("DocumentType", bound=Document)

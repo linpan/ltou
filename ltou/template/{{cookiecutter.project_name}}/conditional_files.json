@@ -1,0 +1,121 @@
+{
+  "Redis support": {
+    "enabled": "{{cookiecutter.enable_redis}}",
+    "resources": [
+      "app/utils/redis_utils.py"
+    ]
+  },
+  "RabbitMQ support": {
+    "enabled": "{{cookiecutter.enable_rmq}}",
+    "resources": [
+      "deploy/kube/redis.yml"
+    ]
+  },
+  "Kafka support": {
+    "enabled": "{{cookiecutter.enable_kafka}}",
+    "resources": [
+      "app/utils/kafka_producer.py"
+    ]
+  },
+  "Database support": {
+    "enabled": "{{cookiecutter.db_info.name != 'none'}}",
+    "resources": [
+      "deploy/kube/db.yml"
+    ]
+  },
+  "Postgres and MySQL support": {
+    "enabled": "{{cookiecutter.db_info.name != 'sqlite'}}",
+    "resources": [
+      "deploy/kube/db.yml"
+    ]
+  },
+  "Jenkins CI": {
+    "enabled": "{{cookiecutter.ci_type == 'jenkins'}}",
+    "resources": [
+      ".jenkins.yaml"
+    ]
+  },
+  "Drone CI": {
+    "enabled": "{{cookiecutter.ci_type == 'drone'}}",
+    "resources": [
+      ".drone.yml"
+    ]
+  },
+  "Github CI": {
+    "enabled": "{{cookiecutter.ci_type == 'github'}}",
+    "resources": [
+      ".github"
+    ]
+  },
+  "Sentry": {
+    "enabled": "{{cookiecutter.enable_sentry}}",
+    "resources": [
+      "app/utils/sentry_integration.py"
+    ]
+  },
+  "Celery": {
+    "enabled": "{{cookiecutter.enable_celery}}",
+    "resources": [
+      "app/move_worker",
+       "app/scripts/beat_start.sh",
+      "app/scripts/flower_start.sh",
+      "app/scripts/worker_start.sh"
+    ]
+  },
+  "Alembic": {
+    "enabled": "{{cookiecutter.orm in ['sa2', 'sqlmodel']}}",
+    "resources": [
+      "alembic.ini",
+      "move_alembic"
+    ]
+  },
+  "SQLAlchemy ORM": {
+    "enabled": "{{cookiecutter.orm == 'sa2'}}",
+    "resources": [
+      "app/move_db_sa"
+    ]
+  },
+  "Mongo ORM": {
+    "enabled": "{{cookiecutter.orm == 'mongo'}}",
+    "resources": [
+      "app/move_db_mongo"
+    ]
+  },
+  "Tortoise ORM": {
+    "enabled": "{{cookiecutter.orm == 'tortoise'}}",
+    "resources": [
+      "app/move_db_tortoise"
+    ]
+  },
+  "Beanie ORM": {
+    "enabled": "{{cookiecutter.orm == 'beanie'}}",
+    "resources": [
+      "app/move_db_beanie"
+    ]
+  },
+  "SqlModel ORM": {
+    "enabled": "{{cookiecutter.orm == 'sqlmodel'}}",
+    "resources": [
+      "app/move_db_sqlmodel",
+      "app/utils/oid.py"
+    ]
+  },
+  "Postgresql DB": {
+    "enabled": "{{cookiecutter.db_info.name == 'postgresql'}}",
+    "resources": [
+      "app/move_db_tortoise/migrations/models/0_20210928165300_init_pg.sql"
+    ]
+  },
+  "MySQL DB": {
+    "enabled": "{{cookiecutter.db_info.name == 'mysql'}}",
+    "resources": [
+      "app/move_db_tortoise/migrations/models/0_20210928165300_init_mysql.sql"
+    ]
+  },
+  "SQLite DB": {
+    "enabled": "{{cookiecutter.db_info.name == 'sqlite'}}",
+    "resources": [
+      "app/move_db_tortoise/migrations/models/0_20210928165300_init_sqlite.sql"
+    ]
+  }
+}

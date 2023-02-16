@@ -1,0 +1,15 @@
+{
+  "app/db": [
+    "app/move_db_sa",
+    "app/move_db_sqlmodel",
+    "app/move_db_tortoise",
+    "app/move_db_mongo",
+    "app/move_db_beanie"
+  ],
+  "app/worker": [
+    "app/move_worker"
+  ],
+  "alembic": [
+    "move_alembic"
+  ]
+}

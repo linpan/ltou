@@ -1,0 +1,1 @@
+# see https://blog.osull.com/2022/06/27/async-in-memory-sqlite-sqlalchemy-database-for-fastapi/

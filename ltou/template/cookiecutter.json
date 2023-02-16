@@ -1,0 +1,42 @@
+{
+  "project_name": {
+    "type": "string"
+  },
+  "db_info": {
+    "type": "dict"
+  },
+  "enable_celery": {
+    "type": "bool"
+  },
+  "enable_redis": {
+    "type": "bool"
+  },
+  "enable_rmq": {
+    "type": "bool"
+  },
+  "ci_type": {
+    "type": "string"
+  },
+  "enable_kafka": {
+    "type": "bool"
+  },
+  "enable_loguru": {
+    "type": "bool"
+  },
+  "orm": {
+    "type": "str"
+  },
+  "enable_kafka": {
+    "type": "bool"
+  },
+  "enable_sentry": {
+    "type": "bool"
+  },
+  "_extensions": [
+    "cookiecutter.extensions.RandomStringExtension"
+  ],
+  "_copy_without_render": [
+    "*.js",
+    "*.css"
+  ]
+}

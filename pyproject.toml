@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ltou"
-version = "0.1.1"
+version = "0.1.2"
 description = "Like 'cargo new' cli creat fastapi project"
 authors = ["hiro <yidiyu0507s@163.com>"]
 readme = "README.md"

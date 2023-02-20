@@ -78,3 +78,4 @@ def init_repo():
 if __name__ == "__main__":
     delete_resource_for_disabled_features()
     replace_resource()
+    init_repo()

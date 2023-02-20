@@ -41,6 +41,15 @@ def create_access_token(
     return jwt.encode(payload, settings.SECRET_KEY, algorithm=ALGORITHM)
 
 
+def create_refresh_token(data: dict) -> str:
+    # Create a new refresh token
+    to_encode = data.copy()
+    expire = datetime.utcnow() + timedelta(minutes=settings.REFRESH_TOKEN_EXPIRE_MINUTES)
+    to_encode.update({"exp": expire})
+    refresh_encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=ALGORITHM)
+    return refresh_encoded_jwt
+
+
 def create_api_key() -> str:
     """Create a random API key."""
     return md5(secrets.token_bytes(32)).hexdigest()

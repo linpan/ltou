@@ -3,7 +3,7 @@ name: Publish Tag
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   publish_tag:
